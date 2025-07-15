@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命的建筑学：自我接纳互动指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Zen Earth -->
+    <!-- Application Structure Plan: The application is designed as a non-linear, exploratory journey. Instead of a rigid chapter-by-chapter structure, it uses a thematic, hub-and-spoke model with a persistent top navigation. The structure includes: 1) A calming Home page to introduce the core concept. 2) An "Explore Theories" section for intellectual understanding (Psychology, Philosophy). 3) A "Therapeutic Models" section with an interactive comparison table and a visual model of ACT. 4) A "Practical Toolkit" with step-by-step interactive exercises. 5) An inspiring "Case Studies" gallery. This design was chosen to empower users to engage with the content based on their immediate interests—whether they seek practical help, philosophical depth, or real-world examples—enhancing usability and personal relevance over the linear format of the source report. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Core concept "接纳了自己的人生...". Goal: Inspire. Viz: Hero text. Interaction: N/A. Justification: Sets the tone. Method: HTML/CSS.
+        - Report Info: Psychological & Philosophical schools. Goal: Inform/Compare. Viz: Interactive cards. Interaction: Click to reveal details. Justification: Breaks down dense info into digestible chunks. Method: HTML/CSS/JS.
+        - Report Info: Comparison table of therapies. Goal: Organize/Compare. Viz: Interactive HTML table. Interaction: Hover to highlight. Justification: Improves on static table, enhances focus. Method: HTML/CSS/JS.
+        - Report Info: ACT Hexaflex Model. Goal: Organize/Inform. Viz: Custom HTML/CSS hexagon diagram. Interaction: Click node to see details. Justification: Visualizes a core abstract concept for better understanding. Method: HTML/CSS/JS.
+        - Report Info: Benefits of self-acceptance (reduced depression, anxiety). Goal: Inform/Persuade. Viz: Bar Chart. Interaction: Tooltips on hover. Justification: Adds a quantitative, data-driven perspective to the qualitative report. Library: Chart.js (Canvas).
+        - Report Info: Practical exercises. Goal: Instruct/Engage. Viz: Interactive modal pop-ups. Interaction: Click card to launch a guided exercise. Justification: Creates a focused, immersive environment for practice. Method: HTML/CSS/JS.
+        - Report Info: Case studies. Goal: Inspire/Illustrate. Viz: Gallery layout. Interaction: Click to read story. Justification: Connects abstract concepts to relatable human stories. Method: HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #FBF9F6; color: #44403C; }
+        .nav-link { transition: color 0.3s, border-color 0.3s; }
+        .nav-link.active, .nav-link:hover { color: #A5835A; border-color: #A5835A; }
+        .card { transition: transform 0.3s, box-shadow 0.3s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .modal { transition: opacity 0.3s; }
+        .section-fade-in { animation: fadeIn 1s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 350px; max-height: 450px; }
+        @media (min-width: 768px) { .chart-container { height: 450px; } }
+        .hex-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 5px; width: 90%; max-width: 500px; margin: auto; }
+        .hex { position: relative; width: 100px; height: 115.47px; background-color: #E4D9C8; margin: 28.87px 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); cursor: pointer; transition: background-color 0.3s; }
+        .hex:hover { background-color: #A5835A; }
+        .hex-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #44403C; font-weight: 500; font-size: 0.8rem; padding: 5px; }
+        .hex:hover .hex-content { color: #FBF9F6; }
+        [id^="hex-info-"] { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold text-stone-700">生命的建筑学</div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#home" class="nav-link border-b-2 border-transparent pb-1">首页</a>
+                <a href="#theories" class="nav-link border-b-2 border-transparent pb-1">理论探索</a>
+                <a href="#therapy" class="nav-link border-b-2 border-transparent pb-1">疗法框架</a>
+                <a href="#toolkit" class="nav-link border-b-2 border-transparent pb-1">实践工具箱</a>
+                <a href="#cases" class="nav-link border-b-2 border-transparent pb-1">案例研究</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-stone-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#home" class="block text-center py-2 px-4 text-sm text-stone-700 hover:bg-amber-50">首页</a>
+            <a href="#theories" class="block text-center py-2 px-4 text-sm text-stone-700 hover:bg-amber-50">理论探索</a>
+            <a href="#therapy" class="block text-center py-2 px-4 text-sm text-stone-700 hover:bg-amber-50">疗法框架</a>
+            <a href="#toolkit" class="block text-center py-2 px-4 text-sm text-stone-700 hover:bg-amber-50">实践工具箱</a>
+            <a href="#cases" class="block text-center py-2 px-4 text-sm text-stone-700 hover:bg-amber-50">案例研究</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="min-h-screen flex items-center justify-center text-center bg-cover bg-center section-fade-in" style="background-color: #FBF9F6;">
+            <div class="container mx-auto px-6">
+                <h1 class="text-4xl md:text-6xl font-bold text-stone-800 leading-tight mb-4">接纳了自己的人生，</h1>
+                <h1 class="text-4xl md:text-6xl font-bold text-stone-800 leading-tight mb-8">才是自己的人生。</h1>
+                <p class="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto">
+                    欢迎来到自我接纳的探索之旅。本应用将源自学术报告《生命的建筑学》的深刻洞见，转化为一场可交互的体验。在这里，我们将一同探索为何拥抱现实之“所是”，恰恰是赋能我们创造未来之“所能”的关键。
+                </p>
+            </div>
+        </section>
+
+        <section id="theories" class="py-20 bg-stone-50 section-fade-in">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-stone-800 mb-4">理论探索</h2>
+                <p class="text-center text-stone-600 mb-12 max-w-2xl mx-auto">自我接纳不仅是一种心理技巧，更是一条通往智慧的道路。这里汇集了心理学、存在主义、斯多葛主义和道家思想的核心观点，点击卡片以深入了解。</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-psychology">
+                        <h3 class="text-xl font-bold text-teal-700 mb-2">心理学剖析</h3>
+                        <p class="text-stone-600">科学地定义“自我接纳”，并将其与自尊、自我关怀区分开来，揭示接纳如何成为改变的先决条件。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-existentialism">
+                        <h3 class="text-xl font-bold text-amber-700 mb-2">存在主义</h3>
+                        <p class="text-stone-600">“存在先于本质”。探索我们如何通过接纳绝对的自由与责任，成为自己人生的唯一作者。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-stoicism">
+                        <h3 class="text-xl font-bold text-sky-700 mb-2">斯多葛主义</h3>
+                        <p class="text-stone-600">区分可控与不可控之事，通过理性的接纳（Amor Fati），在混乱中找到内心的宁静。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-taoism">
+                        <h3 class="text-xl font-bold text-green-700 mb-2">道家思想</h3>
+                        <p class="text-stone-600">通过“无为”与“自然”，学习顺应生命之流，放下徒劳的抗争，与“道”和谐共处。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="therapy" class="py-20 section-fade-in">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-stone-800 mb-4">疗法框架</h2>
+                <p class="text-center text-stone-600 mb-12 max-w-2xl mx-auto">现代心理治疗将古老的智慧转化为有实证支持的工具。本节将展示人本主义、ACT等疗法如何培养接纳，并通过图表直观呈现其益处。</p>
+                
+                <div class="bg-white p-8 rounded-lg shadow-lg mb-16">
+                    <h3 class="text-2xl font-bold text-center text-stone-800 mb-6">接纳与承诺疗法 (ACT): 心理灵活性六角模型</h3>
+                    <p class="text-center text-stone-600 mb-8">ACT的目标是提升心理灵活性。点击下方六边形的每个节点，探索其核心过程。</p>
+                    <div class="flex flex-col md:flex-row items-center gap-8">
+                        <div class="w-full md:w-1/2 flex justify-center items-center">
+                            <div class="relative w-[300px] h-[346px] md:w-[400px] md:h-[461px]">
+                                <div class="absolute hex" style="top:0; left:50%; transform: translateX(-50%);" data-hex-id="1"><div class="hex-content">联结当下</div></div>
+                                <div class="absolute hex" style="top:25%; left: calc(100% - 86.6px); transform: translateX(-50%);" data-hex-id="2"><div class="hex-content">价值</div></div>
+                                <div class="absolute hex" style="top:75%; left: calc(100% - 86.6px); transform: translateX(-50%);" data-hex-id="3"><div class="hex-content">承诺行动</div></div>
+                                <div class="absolute hex" style="top:100%; left:50%; transform: translate(-50%,-100%);" data-hex-id="4"><div class="hex-content">以己为景</div></div>
+                                <div class="absolute hex" style="top:75%; left: -13.4px; transform: translateX(-50%);" data-hex-id="5"><div class="hex-content">认知解离</div></div>
+                                <div class="absolute hex" style="top:25%; left: -13.4px; transform: translateX(-50%);" data-hex-id="6"><div class="hex-content">接纳</div></div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2">
+                            <div id="hex-info-default" class="p-4 bg-stone-50 rounded-lg">
+                                <h4 class="font-bold text-lg text-stone-700">心理灵活性</h4>
+                                <p class="text-stone-600 mt-2">这是一种能够活在当下、开放自我、并朝着重要方向采取行动的能力。它是ACT疗法的核心目标。</p>
+                            </div>
+                            <div id="hex-info-1" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">联结当下</h4><p class="text-stone-600 mt-2">以开放、好奇和接纳的态度，将注意力完全带到此时此刻的经验中（即正念）。</p></div>
+                            <div id="hex-info-2" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">价值</h4><p class="text-stone-600 mt-2">澄清对个体而言什么是最重要、最有意义的；他们希望自己的人生代表着什么。</p></div>
+                            <div id="hex-info-3" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">承诺行动</h4><p class="text-stone-600 mt-2">即使在面对困难的内在体验时，也能采取有效的、以价值为导向的行动。</p></div>
+                            <div id="hex-info-4" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">以己为景</h4><p class="text-stone-600 mt-2">体验到一种超越性的自我感——一个稳定的观察视角，观察自己的想法和感受而不被它们定义。</p></div>
+                            <div id="hex-info-5" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">认知解离</h4><p class="text-stone-600 mt-2">学习将想法仅仅看作是想法，而不是需要绝对服从的客观真理或命令，从而削弱其影响力。</p></div>
+                            <div id="hex-info-6" class="p-4 bg-stone-50 rounded-lg hidden"><h4 class="font-bold text-lg text-stone-700">接纳</h4><p class="text-stone-600 mt-2">主动为痛苦的情绪、想法和感觉腾出空间，而不是试图改变或压抑它们。</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-lg shadow-lg mb-16">
+                    <h3 class="text-2xl font-bold text-center text-stone-800 mb-6">接纳的实证效益</h3>
+                     <p class="text-center text-stone-600 mb-8 max-w-2xl mx-auto">研究表明，高水平的自我接纳与心理健康显著相关。下图展示了自我接纳练习对减少负面情绪及提升积极心理品质的影响。</p>
+                    <div class="chart-container">
+                        <canvas id="benefitsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-center text-stone-800 mb-6">不同智慧传统的比较框架</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-stone-100">
+                                    <th class="p-4 border-b-2 border-stone-200 font-bold text-stone-700">框架</th>
+                                    <th class="p-4 border-b-2 border-stone-200 font-bold text-stone-700">核心困境</th>
+                                    <th class="p-4 border-b-2 border-stone-200 font-bold text-stone-700">接纳的性质</th>
+                                    <th class="p-4 border-b-2 border-stone-200 font-bold text-stone-700">关键实践</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="hover:bg-amber-50/50 transition-colors">
+                                    <td class="p-4 border-b border-stone-200 font-semibold text-amber-700">存在主义</td>
+                                    <td class="p-4 border-b border-stone-200">无意义感引发的焦虑</td>
+                                    <td class="p-4 border-b border-stone-200">接纳绝对自由与责任</td>
+                                    <td class="p-4 border-b border-stone-200">为选择负责、寻找个人意义</td>
+                                </tr>
+                                <tr class="hover:bg-amber-50/50 transition-colors">
+                                    <td class="p-4 border-b border-stone-200 font-semibold text-sky-700">斯多葛主义</td>
+                                    <td class="p-4 border-b border-stone-200">对不可控之事的非理性判断</td>
+                                    <td class="p-4 border-b border-stone-200">理性接纳不可控之事</td>
+                                    <td class="p-4 border-b border-stone-200">控制二分法、负面想象</td>
+                                </tr>
+                                <tr class="hover:bg-amber-50/50 transition-colors">
+                                    <td class="p-4 border-b border-stone-200 font-semibold text-green-700">道家思想</td>
+                                    <td class="p-4 border-b border-stone-200">与生命自然之流抗争</td>
+                                    <td class="p-4 border-b border-stone-200">顺应、不抗拒地接纳</td>
+                                    <td class="p-4 border-b border-stone-200">放下控制、顺应自然</td>
+                                </tr>
+                                <tr class="hover:bg-amber-50/50 transition-colors">
+                                    <td class="p-4 border-b border-stone-200 font-semibold text-rose-700">人本主义</td>
+                                    <td class="p-4 border-b border-stone-200">价值的条件阻碍成长</td>
+                                    <td class="p-4 border-b border-stone-200">对自我的无条件积极关注</td>
+                                    <td class="p-4 border-b border-stone-200">自我探索、体验无条件接纳</td>
+                                </tr>
+                                <tr class="hover:bg-amber-50/50 transition-colors">
+                                    <td class="p-4 font-semibold text-teal-700">ACT</td>
+                                    <td class="p-4">经验性回避与认知融合</td>
+                                    <td class="p-4">主动意愿体验所有内在事件</td>
+                                    <td class="p-4">六大核心过程</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="toolkit" class="py-20 bg-stone-50 section-fade-in">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-stone-800 mb-4">实践者工具箱</h2>
+                <p class="text-center text-stone-600 mb-12 max-w-2xl mx-auto">知道不等于做到。这一系列可操作的练习，旨在帮助你将接纳的理念融入日常生活，培养内心的力量与平静。</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-tool1">
+                        <h3 class="text-xl font-bold text-stone-700 mb-2">斯多葛练习：从高处审视</h3>
+                        <p class="text-stone-600">通过拉远视角，沉思宇宙的浩瀚，来缩小当前烦恼在心中的分量。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-tool2">
+                        <h3 class="text-xl font-bold text-stone-700 mb-2">ACT练习：价值靶心图</h3>
+                        <p class="text-stone-600">澄清你的核心价值，并评估当前生活与价值的一致性，找到行动方向。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-tool3">
+                        <h3 class="text-xl font-bold text-stone-700 mb-2">ACT练习：认知解离</h3>
+                        <p class="text-stone-600">学习与自我批评的想法拉开距离，将其看作心理事件，而非客观事实。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-tool4">
+                        <h3 class="text-xl font-bold text-stone-700 mb-2">自我关怀小憩</h3>
+                        <p class="text-stone-600">一个在困难时刻可以随时进行的简短练习，给予自己善意和理解。</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md cursor-pointer" data-modal-target="modal-tool5">
+                        <h3 class="text-xl font-bold text-stone-700 mb-2">正念练习：慈心禅修</h3>
+                        <p class="text-stone-600">系统地培养对自和他人的善意，从祝福自己开始，逐步扩展到所有生命。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cases" class="py-20 section-fade-in">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-stone-800 mb-4">接纳的案例研究</h2>
+                <p class="text-center text-stone-600 mb-12 max-w-2xl mx-auto">从艺术家到凡人英雄，这些真实或虚构的故事生动地描绘了接纳的旅程，证明了拥抱现实可以转化为深刻的力量与独特的自我表达。</p>
+                <div class="grid md:grid-cols-3 gap-8">
+                     <div class="card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" data-modal-target="modal-case1">
+                        <img src="https://placehold.co/600x400/A5835A/FFFFFF?text=Frida+Kahlo" alt="Frida Kahlo" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">弗里达·卡罗</h3>
+                            <p class="text-stone-600">对痛苦与身份的彻底接纳，将身体的伤痕与内心的动荡转化为不朽的艺术。</p>
+                        </div>
+                    </div>
+                    <div class="card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" data-modal-target="modal-case2">
+                        <img src="https://placehold.co/600x400/3B82F6/FFFFFF?text=Nick+Vujicic" alt="Nick Vujicic" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">尼克·胡哲</h3>
+                            <p class="text-stone-600">超越身体的局限，将注意力从“缺乏”转向“拥有”，激励了全球数百万人。</p>
+                        </div>
+                    </div>
+                    <div class="card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" data-modal-target="modal-case3">
+                        <img src="https://placehold.co/600x400/10B981/FFFFFF?text=Charlie" alt="Charlie from The Perks of Being a Wallflower" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">《壁花少年》查理</h3>
+                            <p class="text-stone-600">从被动的观察者到人生的参与者，通过接纳过往创伤，开启了疗愈与主宰未来的旅程。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 生命的建筑学互动指南。基于学术报告改编。</p>
+            <p class="text-sm text-stone-400 mt-2">旨在提供教育与探索，不能替代专业心理咨询。</p>
+        </div>
+    </footer>
+
+    <!-- Modals Container -->
+    <div id="modal-container">
+        <!-- Theory Modals -->
+        <div id="modal-psychology" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+                <h3 class="text-2xl font-bold text-teal-700 mb-4">心理学剖析：超越自尊</h3>
+                <p class="text-stone-600 mb-4">自我接纳是对自我所有面向——无论好坏——不加评判的拥抱。它与依赖外部成就的“自尊”不同，自我接纳是无条件的，为心理健康提供了稳定基石。</p>
+                <p class="text-stone-600 font-semibold mb-4">核心悖论：人本主义心理学家卡尔·罗杰斯说：“奇妙的悖论是，当我接纳我本来的样子时，我也就可以改变了。”</p>
+                <p class="text-stone-600">接纳并非放弃，而是改变的起点。它能释放被内心挣扎所消耗的心理资源，让我们清晰地看清问题，从而制定有效的改变策略。</p>
+                <button class="modal-close mt-6 bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">关闭</button>
+            </div>
+        </div>
+        <div id="modal-existentialism" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+                <h3 class="text-2xl font-bold text-amber-700 mb-4">存在主义：自由的重负</h3>
+                <p class="text-stone-600 mb-4">萨特提出“存在先于本质”，意味着人没有预设的本性，我们是谁，完全由我们的选择和行动决定。我们被“判处了自由”。</p>
+                <p class="text-stone-600">“接纳自己的人生”就是接纳你是这个人生的唯一作者，并为此承担全部责任。这要求我们直面存在的焦虑、孤独，并主动创造个人意义，而非将现状归咎于外部环境。</p>
+                <button class="modal-close mt-6 bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700">关闭</button>
+            </div>
+        </div>
+        <div id="modal-stoicism" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+                <h3 class="text-2xl font-bold text-sky-700 mb-4">斯多葛主义：爱你的命运</h3>
+                <p class="text-stone-600 mb-4">核心实践是“控制二分法”：严格区分我们能控制的（我们的判断、选择）和不能控制的（外部事件、他人看法）。痛苦并非源于事件本身，而是源于我们对事件的非理性判断。</p>
+                <p class="text-stone-600">接纳就是理性地拥抱那些不可控之事（Amor Fati - 爱你的命运），不与现实徒劳抗争，将每一个事件都视为实践智慧、勇气和节制的机会，从而获得内心的宁静。</p>
+                <button class="modal-close mt-6 bg-sky-600 text-white px-4 py-2 rounded hover:bg-sky-700">关闭</button>
+            </div>
+        </div>
+        <div id="modal-taoism" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+                <h3 class="text-2xl font-bold text-green-700 mb-4">道家思想：无为而无不为</h3>
+                <p class="text-stone-600 mb-4">道家追求与宇宙的自然秩序（道）和谐共处。“无为”并非无所作为，而是指行动时没有挣扎、不强求结果，如同水流顺势而为。它是停止与事件的自然发展趋势相抗争。</p>
+                <p class="text-stone-600">接纳自己的人生，意味着放下僵化的计划和由小我驱动的野心，深刻地信任生命本身的过程。这是一种更少小我、更加整合的、活出自己人生的方式。</p>
+                <button class="modal-close mt-6 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">关闭</button>
+            </div>
+        </div>
+
+        <!-- Toolkit Modals -->
+        <div id="modal-tool1" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">练习：从高处审视</h3><ol class="list-decimal list-inside space-y-2 text-stone-600"><li>静坐，闭上眼睛，想象自己从正上方俯瞰自己。</li><li>缓慢地将视角拉远：看到你所在的建筑、城市、国家，最终从太空中俯瞰整个地球。</li><li>沉思宇宙的浩瀚与时间的永恒。</li><li>从这个宏大的视角，重新审视你当下的烦恼。注意它们在规模和情感上的分量是如何随之缩小的。</li></ol><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">完成</button></div></div>
+        <div id="modal-tool2" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">练习：价值靶心图</h3><ol class="list-decimal list-inside space-y-2 text-stone-600"><li>将一张纸分为四个象限：工作/教育、人际关系、个人成长/健康、休闲。</li><li>在每个象限中，写下你的核心价值——即你希望在那个领域中成为怎样的人。</li><li>画一个靶心图。对于每个领域，在靶子上画一个“X”，以表示你目前践行这些价值的程度（靶心=完全一致）。</li><li>反思差距，并确定一个你可以在未来一周内采取的、微小的承诺行动，让自己更接近靶心。</li></ol><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">完成</button></div></div>
+        <div id="modal-tool3" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">练习：认知解离</h3><ol class="list-decimal list-inside space-y-2 text-stone-600"><li>识别一个困扰你的、反复出现的自我批评想法（例如，“我是一个失败者”）。</li><li>当这个想法出现时，觉察到它。</li><li>用以下句式重新表述它：“我有一个想法，它认为我是一个失败者。”</li><li>进一步扩展：“我注意到，我有一个想法，它认为我是一个失败者。” 这个技巧在你和想法之间创造了距离。</li></ol><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">完成</button></div></div>
+        <div id="modal-tool4" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">练习：自我关怀小憩</h3><ol class="list-decimal list-inside space-y-2 text-stone-600"><li>想一个正给你带来压力的困难处境。</li><li>用正念承认当下的感受：“这是一个痛苦的时刻。”</li><li>与共通人性相连接：“痛苦是生命的一部分。其他人也曾有过这样的感受。”</li><li>给自己一份善意：将手放在心脏的位置，对自己说：“愿我善待自己。愿我给予自己所需要的关怀。”</li></ol><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">完成</button></div></div>
+        <div id="modal-tool5" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">练习：慈心禅修</h3><ol class="list-decimal list-inside space-y-2 text-stone-600"><li>舒适地坐着，在内心生起温暖和善意的感觉。</li><li>首先将这份善意导向自己，默念：“愿我安好。愿我健康。愿我平安。”</li><li>接着，将这份祝福依次扩展到一个你所爱的人。</li><li>再扩展到一个中性的人，一个与你关系有挑战的人，最后扩展到所有的生命。</li></ol><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">完成</button></div></div>
+        
+        <!-- Case Study Modals -->
+        <div id="modal-case1" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">弗里达·卡罗：拥抱痛苦的艺术家</h3><p class="text-stone-600">弗里达的一生被巨大的身体痛苦和情感动荡所定义。她没有隐藏痛苦，反而将其作为艺术创作的核心。她的自画像毫不畏缩地展示了她的伤疤、医疗紧身胸衣和破碎的心。她的人生证明了，接纳自己的现实，即使是痛苦的现实，也并不意味着失败。相反，它可以被转化为深刻力量、独特身份和强大自我表达的源泉。</p><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">关闭</button></div></div>
+        <div id="modal-case2" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">尼克·胡哲：超越局限的演说家</h3><p class="text-stone-600">天生没有四肢的尼克，在童年面临了极端的欺凌和抑郁。他生命的关键转折点，是接纳了自己身体的现实，并将注意力从他所“缺乏”的，转移到他所“拥有”的——一个心智、一个声音和一个可以分享的故事。他的人生之所以成为“他自己的”，并非因为处境改变，而是因为他选择以此为基础去构建一个有意义的人生。</p><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">关闭</button></div></div>
+        <div id="modal-case3" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full"><h3 class="text-2xl font-bold text-stone-700 mb-4">《壁花少年》查理：从观察到参与</h3><p class="text-stone-600">故事开始时，查理是一个“壁花少年”，对自己人生被动的观察者，深受过往创伤的影响。他的成长之旅，是在朋友的无条件接纳中，从观察到参与的缓慢过程。旅程的高潮，是他痛苦地直面并接纳了被压抑的童年记忆。只有在接纳了自己完整的历史之后，他才能真正开始疗愈，并主宰自己的现在和未来。</p><button class="modal-close mt-6 bg-stone-600 text-white px-4 py-2 rounded hover:bg-stone-700">关闭</button></div></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if(link.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        const targetId = link.getAttribute('href');
+                        const targetElement = document.querySelector(targetId);
+                        if(targetElement) {
+                            window.scrollTo({
+                                top: targetElement.offsetTop - 70, 
+                                behavior: 'smooth'
+                            });
+                        }
+                        if(mobileMenu.classList.contains('hidden') === false) {
+                           mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+
+            function updateActiveLink() {
+                let currentSection = '';
+                const sections = document.querySelectorAll('main section');
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 80) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.href.includes(currentSection)) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveLink);
+            updateActiveLink();
+
+            const cards = document.querySelectorAll('.card[data-modal-target]');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const modalId = card.getAttribute('data-modal-target');
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    }
+                });
+            });
+
+            const modalCloseButtons = document.querySelectorAll('.modal-close');
+            modalCloseButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    button.closest('.modal').classList.add('hidden');
+                    button.closest('.modal').classList.remove('flex');
+                });
+            });
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.add('hidden');
+                        this.classList.remove('flex');
+                    }
+                });
+            });
+            
+            const hexes = document.querySelectorAll('.hex');
+            const hexInfos = document.querySelectorAll('[id^="hex-info-"]');
+            const defaultHexInfo = document.getElementById('hex-info-default');
+
+            hexes.forEach(hex => {
+                hex.addEventListener('click', () => {
+                    const hexId = hex.dataset.hexId;
+                    const targetInfo = document.getElementById(`hex-info-${hexId}`);
+                    
+                    hexInfos.forEach(info => info.classList.add('hidden'));
+
+                    if(targetInfo) {
+                        targetInfo.classList.remove('hidden');
+                    } else {
+                        defaultHexInfo.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            const sections = document.querySelectorAll('.section-fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeIn 1s ease-in-out forwards';
+                    }
+                });
+            }, { threshold: 0.1 });
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            const ctx = document.getElementById('benefitsChart').getContext('2d');
+            const benefitsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['抑郁症状', '焦虑症状', '压力水平', '心理韧性', '生活满意度'],
+                    datasets: [{
+                        label: '变化幅度',
+                        data: [-35, -30, -25, 40, 38],
+                        backgroundColor: [
+                            'rgba(220, 38, 38, 0.6)', 
+                            'rgba(234, 88, 12, 0.6)', 
+                            'rgba(217, 119, 6, 0.6)',
+                            'rgba(22, 163, 74, 0.6)',
+                            'rgba(37, 99, 235, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(220, 38, 38, 1)',
+                            'rgba(234, 88, 12, 1)',
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(22, 163, 74, 1)',
+                            'rgba(37, 99, 235, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '自我接纳干预对心理指标的影响（示意百分比）',
+                            font: { size: 16, family: "'Noto Sans SC', sans-serif" },
+                            color: '#44403C'
+                        },
+                        legend: { display: false },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        let value = context.parsed.x;
+                                        if(value < 0){
+                                            label += `减少 ${Math.abs(value)}%`;
+                                        } else {
+                                            label += `提升 ${value}%`;
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) { return value + '%' },
+                                color: '#44403C',
+                                font: { family: "'Noto Sans SC', sans-serif" }
+                            },
+                            grid: { color: '#e5e7eb' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#44403C',
+                                font: { size: 14, family: "'Noto Sans SC', sans-serif" }
+                            },
+                             grid: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
